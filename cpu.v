@@ -58,85 +58,85 @@ module cpu (
         reg_addr_w   = operand;
         reg_data_in  = acc;
 
-        alu_ctrl     = 3'b000;   // default (ADD, doesn't matter if not used)
+        alu_ctrl     = 3'b000;   // default is Add
 
         case (opcode)
             4'b0000: begin
-                // NOP: nothing but PC already increments by default
+                // NOP
             end
 
             4'b0001: begin
-                // ADD ACC, Rn
+                // Add acc and operand
                 alu_ctrl = 3'b000;
                 next_acc = alu_out;
             end
 
             4'b0010: begin
-                // SUB ACC, Rn
+                // Sub acc and operand
                 alu_ctrl = 3'b001;
                 next_acc = alu_out;
             end
 
             4'b0011: begin
-                // NOR ACC, Rn
+                // NOR acc and operand
                 alu_ctrl = 3'b010;
                 next_acc = alu_out;
             end
 
             4'b0100: begin
-                // SHL ACC
-                alu_ctrl = 3'b011;
-                next_acc = alu_out;
-            end
-
-            4'b0101: begin
-                // SHR ACC
-                alu_ctrl = 3'b100;
-                next_acc = alu_out;
-            end
-
-            4'b1000: begin
-                // MOV ACC, Rn
+                // Load Reg->ACC
                 next_acc = reg_data_out;
             end
 
-            4'b1001: begin
-                // MOV Rn, ACC
+            4'b0101: begin
+                // Load ACC->Reg 
                 reg_we     = 1'b1;
                 reg_data_in = acc;
             end
 
-            4'b1010: begin
-                // MOV ACC, imm4 (zero-extend)
-                next_acc = {4'b0000, operand};
-            end
-
-            4'b0110: begin
-                // BRZ Rn (branch if ACC == 0 to address in Rn)
+            4'b0110: begin 
+                // Jump if 0 Reg->PC 
                 if (acc == 8'b0) begin
                     next_pc = reg_data_out;
                 end
             end
 
             4'b0111: begin
-                // BRZ imm4 (branch if ACC == 0 to immediate address)
+                // Jump if 0 IMM->PC 
                 if (acc == 8'b0) begin
                     next_pc = {4'b0000, operand};
                 end
             end
 
-            4'b1100: begin
-                // BRN Rn (branch if ACC < 0; sign bit = 1)
+            4'b1000: begin
+                // Jump if carry Reg->PC
                 if (acc[7] == 1'b1) begin
                     next_pc = reg_data_out;
                 end
             end
 
-            4'b1101: begin
-                // BRN imm4 (branch if ACC < 0)
+            4'b1010: begin
+                // Jump if carry IMM->PC 
                 if (acc[7] == 1'b1) begin
                     next_pc = {4'b0000, operand};
                 end
+            end
+
+            4'b1011: begin
+                // Shift left
+                alu_ctrl = 3'b011;
+                next_acc = alu_out;
+            end
+
+            4'b1100: begin
+                // Shift right
+                alu_ctrl = 3'b100;
+                next_acc = alu_out;
+            end
+
+            4'b1101: begin
+                // Load IMM->ACC
+                next_acc = {4'b0000, operand};
             end
 
             4'b1111: begin
@@ -146,7 +146,7 @@ module cpu (
             end
 
             default: begin
-                // Unknown opcode -> treat as NOP
+                // Unused opcodes (1110 and 1001) handled with NOP
             end
         endcase
     end
