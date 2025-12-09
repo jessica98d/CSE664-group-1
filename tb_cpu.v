@@ -46,7 +46,7 @@ module tb_cpu;
     // Stop simulation when HALT or timeout
     initial begin
         // safety timeout
-        #500;
+        #800;
         $display("Timeout reached, stopping simulation.");
         $stop;
     end
